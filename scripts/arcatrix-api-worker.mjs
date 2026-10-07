@@ -53,7 +53,10 @@ async function runGitHub(a){
    const endpoint=encoded?`/repos/${owner}/${name}/contents/${encoded}`:`/repos/${owner}/${name}/contents`;
    const data=await gh("GET",`${endpoint}?ref=${encodeURIComponent(ref)}`);
    const dir=Array.isArray(data);
-   return{before_state:{},after_state:{},evidence:{operation:op,repository:repo,ref,path,type:dir?"dir":data?.type??null,sha:dir?null:data?.sha??null,item_count:dir?data.length:null},external_refs:{provider:"github",repository:repo,sha:dir?null:data?.sha??null},spend_cents:0,currency:"USD"};
+   const textFile=!dir&&data?.type==="file"&&data?.encoding==="base64"&&Number(data?.size??0)<=32768&&(/\.(?:ts|tsx|js|mjs|cjs|json|md|yml|yaml|toml|sql|css|html|txt|py|sh)$/i.test(path)||/(^|\/)(?:Dockerfile|Makefile|Procfile)$/i.test(path));
+   const items=dir?data.slice(0,200).map(x=>({name:x?.name??null,path:x?.path??null,type:x?.type??null,sha:x?.sha??null,size:x?.size??null})):null;
+   const content=textFile?decodeGitHubContent(data.content).slice(0,32768):null;
+   return{before_state:{},after_state:{},evidence:{operation:op,repository:repo,ref,path,type:dir?"dir":data?.type??null,sha:dir?null:data?.sha??null,item_count:dir?data.length:null,items,content,content_truncated:textFile&&decodeGitHubContent(data.content).length>32768},external_refs:{provider:"github",repository:repo,sha:dir?null:data?.sha??null,path},spend_cents:0,currency:"USD"};
  }
 
  if(op==="create_branch"){
