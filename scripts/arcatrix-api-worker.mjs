@@ -156,8 +156,8 @@ async function main(){
    if(a.action_class!=="read")throw new Error("filtered_claim_returned_non_read");
    await executeAction(a);
  }
- if(reads>0){
-   console.log(JSON.stringify({ok:true,read_actions_completed:reads,mutation_action_completed:false}));
+ if(reads>=8){
+   console.log(JSON.stringify({ok:true,read_actions_completed:reads,mutation_action_completed:false,read_cap_reached:true}));
    return;
  }
  const a=await claimOne(null);
