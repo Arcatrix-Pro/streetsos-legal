@@ -1,6 +1,6 @@
 {
-  "version": 2,
+  "version": 3,
   "purpose": "Safe repo-local Arcatrix worker wake-up trigger",
-  "last_wake_reason": "finish_streets_os_mission_discovery",
-  "last_wake_marker": "2026-10-08T01:20:00Z"
+  "last_wake_reason": "finish_streets_os_round_1_backfill",
+  "last_wake_marker": "2026-10-08T01:45:00Z"
 }
