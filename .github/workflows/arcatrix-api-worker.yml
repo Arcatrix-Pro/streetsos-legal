@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/arcatrix-api-worker.yml"
       - "scripts/arcatrix-api-worker.mjs"
+      - "ops/arcatrix-worker-trigger.json"
   workflow_dispatch:
   schedule:
     - cron: "*/5 * * * *"
@@ -37,7 +38,7 @@ jobs:
           token_json="$(curl -fsSL -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL${sep}audience=arcatrix-executor")"
           token="$(node -e 'const fs=require("fs"); const j=JSON.parse(fs.readFileSync(0,"utf8")); process.stdout.write(j.value)' <<<"$token_json")"
           echo "ARCATRIX_OIDC_TOKEN=$token" >> "$GITHUB_ENV"
-      - name: Run one API action
+      - name: Run governed API actions
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/arcatrix-api-worker.mjs

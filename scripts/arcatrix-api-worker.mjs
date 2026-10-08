@@ -124,11 +124,7 @@ async function receipt(a,status,result,error){
  throw last??new Error("receipt_delivery_failed");
 }
 
-async function main(){
- const claim=await post("claim",{worker_kind:"api",repository:CURRENT_REPO});
- const a=Array.isArray(claim.action)?claim.action[0]??null:claim.action;
- if(!a){console.log("no_api_action");return}
-
+async function executeAction(a){
  let result;
  try{
    if(a.capability_id==="github")result=await runGitHub(a);
@@ -138,7 +134,6 @@ async function main(){
    await receipt(a,"failed",null,m).catch(reportError=>console.error("failed_receipt_delivery_failed",message(reportError)));
    throw e;
  }
-
  try{
    await receipt(a,"completed",result);
  }catch(e){
@@ -146,5 +141,27 @@ async function main(){
    throw e;
  }
  console.log(JSON.stringify({ok:true,action_id:a.id,status:"completed",capability_id:a.capability_id,operation:a.operation}));
+}
+
+async function claimOne(actionClass){
+ const claim=await post("claim",{worker_kind:"api",repository:CURRENT_REPO,...(actionClass?{action_class:actionClass}:{})});
+ return Array.isArray(claim.action)?claim.action[0]??null:claim.action;
+}
+
+async function main(){
+ let reads=0;
+ for(;reads<8;reads++){
+   const a=await claimOne("read");
+   if(!a)break;
+   if(a.action_class!=="read")throw new Error("filtered_claim_returned_non_read");
+   await executeAction(a);
+ }
+ if(reads>=8){
+   console.log(JSON.stringify({ok:true,read_actions_completed:reads,mutation_action_completed:false,read_cap_reached:true}));
+   return;
+ }
+ const a=await claimOne(null);
+ if(!a){console.log("no_api_action");return}
+ await executeAction(a);
 }
 main().catch(e=>{console.error(e);process.exit(1)});
