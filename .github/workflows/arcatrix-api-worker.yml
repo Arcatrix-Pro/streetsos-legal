@@ -9,7 +9,7 @@ on:
       - "ops/arcatrix-worker-trigger.json"
   workflow_dispatch:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "47 * * * *" # Hourly to conserve included Actions minutes; manual dispatch retained
 
 permissions:
   contents: write
